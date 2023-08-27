@@ -57,9 +57,5 @@ app.post('/publish', upload.single('file'), (req, res) => {
 });
 
 app.listen(3000, () => {
-<<<<<<< HEAD
     console.log('On!');
-=======
-    console.log("On!");
->>>>>>> d1a577a5f08245bef5f4e0d88c1bd426f791e8e5
 });
