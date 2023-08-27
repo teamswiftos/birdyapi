@@ -3,6 +3,7 @@ const app = express();
 const multer = require('multer');
 const processreq = require('./processreq');
 const { checkusr, set } = require('./dbwrapper');
+const ratelimits = require('./ratelimits');
 let endpoints = {
     "GET": {},
     "POST": {},
@@ -15,6 +16,10 @@ for (file of fs.readdirSync('./endpoints')) {
 }
 
 app.get('/:content', (req, res) => {
+    if (ratelimits(req.ip)) {
+        res.status(429).send("Too Many Requests, try again later, the amount of requests per second is 100, it resets every seconds, you are banned from the api for 10 minutes");
+        return;
+    }
     processreq(req, res, endpoints.GET);
 });
 
@@ -29,7 +34,10 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 app.post('/publish', upload.single('file'), (req, res) => {
-    const uploadedFileName = req.file.filename;
+    if (ratelimits(req.ip)) {
+        res.status(429).send("Too Many Requests, try again later, the amount of requests per minute second is 100, it resets every seconds, you are banned from the api for 10 minutes");
+        return;
+    }
     const body = JSON.parse(req.body);
     const module_info = {};
     module_info.name = body.name;
@@ -42,9 +50,12 @@ app.post('/publish', upload.single('file'), (req, res) => {
     module_info.license = body.license;
     module_info.github_repo = body.github;
     module_info.website = body.website;
+    module_info.file = req.file.filename;
+    module_info.downloads = 0;
+    module_info.verified = false;
     set(module_info.name, `module.exports = ${JSON.stringify(module_info, null, 4)}`);
 });
 
 app.listen(3000, () => {
-    console.log('Example app listening on port 3000!');
+    console.log('On!');
 });

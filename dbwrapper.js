@@ -37,6 +37,7 @@ module.exports = {
         return true;
     },
     set: function(query, content, filename = null, file = null) {
+        modules[query] = content;
         if (filename && filename) {
             fs.writeFileSync(`./db/modules/${file}`, file);
         }
